@@ -1,0 +1,5 @@
+* To compile pyx
+  python3.6 setup.py build_ext --inplace
+
+* Avoid using c strings
+  http://cython.readthedocs.io/en/latest/src/tutorial/strings.html
