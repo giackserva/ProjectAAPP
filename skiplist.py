@@ -10,17 +10,17 @@ class _Node:
         self.forward = [0] * height
         print("Printing forward", str(self.forward))
                                     
-    def printNode(n):               
+    def print_node(n):               
         if isinstance(n, _Node):
             print("Node --- k:", str(n.key), ", v:", str(n.value))
         else:
             print(str(n))
 
-    def printNodeWithAdjacent(self):
-        self.printNode()
+    def print_node_with_adjacents(self):
+        self.print_node()
         print("Adjacent element, level 0 to (excluded): " + str(len(self.forward)))
         for n in self.forward:
-            n.printNode()
+            n.print_node()
         print("---End adjacent nodes")
 
 
@@ -39,33 +39,33 @@ class SkipList:
         # Note: we start from level 0 (not 1 as in the paper)
         for i in range(maxLevel):
             self.HEADER.forward.append(self.NIL)
-        self.printList()
+        self.print_list()
 
-    def printList(self):
+    def print_list(self):
         print("SKIPLIST\n" + "Max level = " + str(self.maxLevel) + ", Level = " + str(self.level) + "\n")
         for i in range(self.maxLevel): 
-            self.printLevel(i)
+            self.print_level(i)
 
-    def printLevel(self, l):
+    def print_level(self, l):
         if l >= self.maxLevel:
             raise ValueError("Level greater than MaxValue")
 
         print("Printing Level = " + str(l))
         y = self.HEADER
-        y.printNode()
+        y.print_node()
         while y.forward[l] != self.NIL:
-            y.forward[l].printNode()
+            y.forward[l].print_node()
             y = y.forward[l]
-        y.forward[l].printNode()
+        y.forward[l].print_node()
         print("---End of Level---")
          
-    def randomLevel(self):
+    def _random_level(self):
         level = 0
         while random() < self.p and level < self.maxLevel - 1:
             level += 1
         return level
              
-    def updateList(self, key):
+    def _update_list(self, key):
         update = [None] * (self.level + 1)
         x = self.HEADER
         for i in range(self.level, -1, -1):
@@ -75,7 +75,7 @@ class SkipList:
             update[i] = x
         print("***Printing update list")
         for n in update:
-            n.printNodeWithAdjacent()
+            n.print_node_with_adjacents()
         print("***End update list")
         return update
          
@@ -83,7 +83,7 @@ class SkipList:
         if key <= self.INT_MIN or key >= self.INT_MAX:
             raise ValueError("Illegal key value")
         
-        update = self.updateList(key)
+        update = self._update_list(key)
         # if update[0].forward[0].key != self.NIL.key:
         #     x = update[0].forward[0]
         # else:
@@ -92,13 +92,13 @@ class SkipList:
         x = update[0].forward[0]
              
         print("Level 0 predecessor: ")
-        x.printNode()
+        x.print_node()
          
         if x.key == key:
             print("Key already present, updating value")
             x.value = value
         else:
-            lvl = self.randomLevel()
+            lvl = self._random_level()
             print("Random level selected " + str(lvl))
             x = _Node(key, value, lvl + 1)
     
@@ -108,25 +108,25 @@ class SkipList:
                 self.level = lvl
                 print("***Printing update list")
                 for n in update:
-                    n.printNodeWithAdjacent()
+                    n.print_node_with_adjacents()
                 print("***End update list")
              
             for i in range (self.level + 1):
                 print("Iteration " + str(i))
                 # print("update[i].forward[i] node before append")
-                # update[i].forward[i].printNodeWithAdjacent()
+                # update[i].forward[i].print_node_with_adjacents()
                 x.forward[i] = update[i].forward[i]
                 print("Node appended")
-                # x.printNodeWithAdjacent()
+                # x.print_node_with_adjacents()
                  
                 # print("update[i].forward[i] node after append, before update")
-                # update[i].forward[i].printNodeWithAdjacent()
+                # update[i].forward[i].print_node_with_adjacents()
                 update[i].forward[i] = x
                 print("Forward node updated")
             
-            x.printNodeWithAdjacent()
+            x.print_node_with_adjacents()
 
             # print("printing update list")
             # for n in update:
-            #     n.printNodeWithAdjacent()
+            #     n.print_node_with_adjacents()
                  
