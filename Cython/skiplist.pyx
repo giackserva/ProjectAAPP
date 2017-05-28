@@ -7,7 +7,7 @@ import logging
 
 logger_file = 'skiplist.log'
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.ERROR)
+logger.setLevel(logging.DEBUG)
 
 #WARN: it overwrites the file every time
 fh = logging.FileHandler(logger_file, 'w')
@@ -157,7 +157,8 @@ cdef class SkipList:
     cpdef bint insert(self, unsigned int key, int value):
         logger.debug("Trying to insert new node, k %s, v %s", key, value)
         if key < self.MIN_KEY_VALUE  or key > self.MAX_KEY_VALUE:
-            logger.error("Illegal key value passed to insert")
+            logger.error("Illegal key value passed to insert, key = %s", 
+                        key)
             raise ValueError("Illegal key value")
 
         cdef list update = self._update_list(key)
@@ -202,5 +203,26 @@ cdef class SkipList:
                     return False
 
             logger.debug(self.list_to_string())
-            return True
+             return True
+
+    cpdef int search(self, unsigned int key):
+        logger.debug("Searching node with key %s", key)
+        if key < self.MIN_KEY_VALUE  or key > self.MAX_KEY_VALUE:
+            logger.error("Illegal key value passed to insert")
+            raise ValueError("Illegal key value")
+
+        cdef _Node x = self.HEADER
+
+        cdef unsigned short i = self.level
+        for i in range(self.level, -1, -1):
+            logger.debug("Searching at level %s", i)
+            while x.forward[i].key < key:
+                logger.debug("Next key is %s, traversing", x.forward[i].key)
+                x = x.forward[i]
+        x = x.forward[0]
+        if x.key == key:
+            logger.debug("Node found, value = %s", x.value)
+            return x.value
+        else:
+            logger.debug("Node not found")
 

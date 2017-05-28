@@ -3,6 +3,15 @@ HEAD has key 0
 NIL has key UINT_MAX
 level and maxLevel are unsigned short int
 
+****** Program
+* testsuite.py
+  simply run python3.6 testsuite.py
+
+* profile.py(x)
+  from a python interpreter, import profile and invoke profile.start()
+  Important: disable the logger (or set it to ERROR) to avoid logging
+  overhead when profiling
+
 ******General on Cython
 
 * To compile pyx
