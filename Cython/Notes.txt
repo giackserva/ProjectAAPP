@@ -1,3 +1,10 @@
+******General on data structure
+HEAD has key 0
+NIL has key UINT_MAX
+level and maxLevel are unsigned short int
+
+******General on Cython
+
 * To compile pyx
   python3.6 setup.py build_ext --inplace
 
@@ -9,3 +16,7 @@
 
 * cdef: callable only from c code
   cpdef: callable both from c and python code (e.g. python interpreter)
+
+******General on numpy
+* error: numpy/arrayobject.h: No such file or directory
+  https://github.com/andersbll/cudarray/issues/25

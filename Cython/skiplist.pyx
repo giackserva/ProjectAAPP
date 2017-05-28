@@ -1,4 +1,4 @@
-from libc.limits cimport INT_MAX, INT_MIN
+from libc.limits cimport UINT_MAX
 from libc.stdlib cimport srand, rand, RAND_MAX
 # To generate a random seed for the rand c function
 from random import randint
@@ -7,7 +7,7 @@ import logging
 
 logger_file = 'skiplist.log'
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.ERROR)
 
 #WARN: it overwrites the file every time
 fh = logging.FileHandler(logger_file, 'w')
@@ -20,14 +20,16 @@ ch.setFormatter(formatter)
 logger.addHandler(fh)
 logger.addHandler(ch)
 
-srand(randint(0, INT_MAX))
+srand(randint(0, RAND_MAX))
+
 
 cdef class _Node:
-    cdef public int key, value
+    cdef public int value
+    cdef public unsigned int key
     cdef public list forward
 
     #Height start counting by 1
-    def __cinit__(self, int key, int value = 0, int height = 0):
+    def __cinit__(self, unsigned int key, int value = 0, unsigned short height = 0):
         logger.debug("Creating node with height " + str(height))
         self.key     = key
         self.value   = value
@@ -48,12 +50,14 @@ cdef class _Node:
         return s
 
 cdef class SkipList:
-    cdef public int maxLevel, level
-    cdef double p
-    cdef _Node HEADER, NIL
+    cdef public unsigned short maxLevel, level
+    cdef readonly float p
+    cdef readonly _Node HEADER, NIL
+    cpdef readonly unsigned int MIN_KEY_VALUE
+    cpdef readonly unsigned MAX_KEY_VALUE
 
     #Note: level assumes counting notation starts from 0, maxLevel from 1
-    def __cinit__(self, double p, int maxLevel = 1):
+    def __cinit__(self, float p, unsigned short maxLevel = 1):
         logger.debug("Initializing skip list")
         if maxLevel < 1 or p < 0:
             logger.error("Illegal values passed to constructor")
@@ -62,11 +66,13 @@ cdef class SkipList:
         self.p        = p
         self.maxLevel = maxLevel
         self.level    = 0
-        self.HEADER   = _Node(INT_MIN, 0, 0)
-        self.NIL      = _Node(INT_MAX, 100, 0)
+        self.MIN_KEY_VALUE = 1
+        self.MAX_KEY_VALUE = UINT_MAX - 2
+        self.HEADER   = _Node(self.MIN_KEY_VALUE, 0, 0)
+        self.NIL      = _Node(self.MAX_KEY_VALUE, 100, 0)
 
         # Note: we start from level 0 (not 1 as in the paper)
-        cdef int i
+        cdef unsigned short i
         for i in range(maxLevel):
             self.HEADER.forward.append(self.NIL)
         logger.debug(self.list_to_string())
@@ -79,7 +85,7 @@ cdef class SkipList:
         logger.debug("Converting list to string")
         s = "--- Skiplist --- \n" + "Max level = " + str(self.maxLevel) \
                 + ", Level = " + str(self.level) + ", p = " + str(self.p)
-        cdef int i
+        cdef unsigned short i
         for i in range(self.maxLevel):
             s += "\n\t" +  self.level_to_string(i)
         logger.debug("Ending conversion")
@@ -93,15 +99,19 @@ cdef class SkipList:
         s = "--- Level " + str(l) + " ---"
         cdef _Node y = self.HEADER
         s += "\n\t" + y.node_to_string()
+        cdef int i = 1
         while y.forward[l] != self.NIL:
             s += "\n\t" + y.forward[l].node_to_string()
             y = y.forward[l]
+            i += 1
         s += "\n\t" + y.forward[l].node_to_string()
+        s += "\n--- End of level, " + str(i + 1) + " node present, including \
+                HEADER and NIL ---"
         return s
 
-    cdef int _random_level(self):
-        cdef int level = 0
-        cdef double random = int(rand()) / int(RAND_MAX)
+    cdef unsigned short _random_level(self):
+        cdef unsigned short level = 0
+        cdef float random = int(rand()) / int(RAND_MAX)
         logger.debug("p="        + str(self.p))
         logger.debug("maxLevel=" + str(self.maxLevel))
 
@@ -113,10 +123,10 @@ cdef class SkipList:
         logger.debug("Random level generated " + str(level))
         return level
 
-    cdef list _update_list(self, int key):
+    cdef list _update_list(self, unsigned int key):
         cdef list update = [None] * (self.level + 1)
         cdef _Node x     = self.HEADER
-        cdef int i
+        cdef unsigned short i
 
         for i in range(self.level, -1, -1):
             while x.forward[i].key < key:
@@ -130,7 +140,7 @@ cdef class SkipList:
 
         return update
 
-    cpdef list get_nodes_of_level(self, int l):
+    cpdef list get_nodes_of_level(self, unsigned short l):
         if l >= self.maxLevel:
             raise ValueError("Level greater than MaxValue")
 
@@ -144,9 +154,9 @@ cdef class SkipList:
         nodes.append(self.NIL)
         return nodes
 
-    cpdef bint insert(self, int key, int value):
+    cpdef bint insert(self, unsigned int key, int value):
         logger.debug("Trying to insert new node, k %s, v %s", key, value)
-        if key <= INT_MIN or key >= INT_MAX:
+        if key < self.MIN_KEY_VALUE  or key > self.MAX_KEY_VALUE:
             logger.error("Illegal key value passed to insert")
             raise ValueError("Illegal key value")
 
@@ -154,8 +164,8 @@ cdef class SkipList:
         cdef _Node x     = update[0].forward[0]
         logger.debug("Candidate: " + x.node_to_string())
 
-        cdef int lvl = self._random_level()
-        cdef int i
+        cdef unsigned short lvl = self._random_level()
+        cdef unsigned short i
 
         if x.key == key:
             logger.debug("Key already present, updating value")
