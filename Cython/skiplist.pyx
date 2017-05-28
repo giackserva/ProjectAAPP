@@ -1,3 +1,4 @@
+# cython: profile=True
 from libc.limits cimport UINT_MAX
 from libc.stdlib cimport srand, rand, RAND_MAX
 # To generate a random seed for the rand c function
@@ -7,7 +8,7 @@ import logging
 
 logger_file = 'skiplist.log'
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.ERROR)
 
 #WARN: it overwrites the file every time
 fh = logging.FileHandler(logger_file, 'w')
@@ -30,11 +31,11 @@ cdef class _Node:
 
     #Height start counting by 1
     def __cinit__(self, unsigned int key, int value = 0, unsigned short height = 0):
-        logger.debug("Creating node with height " + str(height))
+        logger.debug("Creating node with height %d", height)
         self.key     = key
         self.value   = value
         self.forward = [0] * height
-        logger.debug("Printing forward" + str(self.forward))
+        logger.debug("Printing forward %s ", self.forward)
 
     cpdef node_to_string(self):
         logger.debug("Converting node to string")
@@ -43,7 +44,7 @@ cdef class _Node:
 
     cpdef node_with_adjacents_to_string(self):
         s = self.node_to_string()
-        logger.debug("Adjacent element, level 0 to (excluded): " + str(len(self.forward)))
+        logger.debug("Adjacent element, level 0 to (excluded): %d ", len(self.forward))
         s += "\n\t --- Adjacents ---"
         for n in self.forward:
             s += "\n\t" + n.node_to_string()
@@ -60,7 +61,8 @@ cdef class SkipList:
     def __cinit__(self, float p, unsigned short maxLevel = 1):
         logger.debug("Initializing skip list")
         if maxLevel < 1 or p < 0:
-            logger.error("Illegal values passed to constructor")
+            logger.error("Illegal values passed to constructor, maxL=%d, p=%f",
+                         maxLevel, p)
             raise ValueError("Illegal constructor value")
 
         self.p        = p
@@ -75,7 +77,7 @@ cdef class SkipList:
         cdef unsigned short i
         for i in range(maxLevel):
             self.HEADER.forward.append(self.NIL)
-        logger.debug(self.list_to_string())
+        logger.debug("%s", self.list_to_string())
 
 
     # Bugged: it always return 0
@@ -95,7 +97,7 @@ cdef class SkipList:
         if l >= self.maxLevel:
             raise ValueError("Level greater than MaxValue")
 
-        logger.debug("Printing Level = " + str(l))
+        logger.debug("Printing Level = %d", l)
         s = "--- Level " + str(l) + " ---"
         cdef _Node y = self.HEADER
         s += "\n\t" + y.node_to_string()
@@ -112,15 +114,15 @@ cdef class SkipList:
     cdef unsigned short _random_level(self):
         cdef unsigned short level = 0
         cdef float random = int(rand()) / int(RAND_MAX)
-        logger.debug("p="        + str(self.p))
-        logger.debug("maxLevel=" + str(self.maxLevel))
+        logger.debug("p= %f", self.p)
+        logger.debug("maxLevel= %d", self.maxLevel)
 
-        logger.debug("r="        + str(random))
+        logger.debug("r=%f", random)
         while random < self.p and level < self.maxLevel - 1:
             level += 1
             random = int(rand()) / int(RAND_MAX)
-            logger.debug("r="        + str(random))
-        logger.debug("Random level generated " + str(level))
+            logger.debug("r= %f", random)
+        logger.debug("Random level generated %d ", level)
         return level
 
     cdef list _update_list(self, unsigned int key):
@@ -135,7 +137,7 @@ cdef class SkipList:
 
         logger.debug("Printing update list")
         for n in update:
-            logger.debug(n.node_with_adjacents_to_string())
+            logger.debug("%s", n.node_with_adjacents_to_string())
         logger.debug("End update list")
 
         return update
@@ -163,7 +165,7 @@ cdef class SkipList:
 
         cdef list update = self._update_list(key)
         cdef _Node x     = update[0].forward[0]
-        logger.debug("Candidate: " + x.node_to_string())
+        logger.debug("Candidate: %s", x.node_to_string())
 
         cdef unsigned short lvl = self._random_level()
         cdef unsigned short i
@@ -173,9 +175,9 @@ cdef class SkipList:
             x.value = value
             return True
         else:
-            logger.debug("Random level selected " + str(lvl))
+            logger.debug("Random level selected %d", lvl)
             x = _Node(key, value, lvl + 1)
-            logger.debug(x.node_to_string())
+            logger.debug("%s", x.node_to_string())
 
             if lvl > self.level:
                 logger.debug("Level > current level")
@@ -185,30 +187,32 @@ cdef class SkipList:
                 self.level = lvl
                 logger.debug("Printing update list")
                 for n in update:
-                    logger.debug(n.node_with_adjacents_to_string())
+                    logger.debug("%s", n.node_with_adjacents_to_string())
                 logger.debug("End update list")
             i = 0
             for i in range (lvl + 1):
                 try:
-                    logger.debug("Iteration " + str(i))
+                    logger.debug("Iteration %d", i)
                     x.forward[i] = update[i].forward[i]
                     logger.debug("Node appended")
                     update[i].forward[i] = x
                     logger.debug("Forward node updated")
                 except IndexError as err:
                     logger.error("Error while inserting node at iteration %d", i)
-                    logger.error(x.node_with_adjacents_to_string())
-                    logger.error(update[i].node_with_adjacents_to_string())
-                    logger.error(update[i].forward[i].node_with_adjacents_to_string())
+                    logger.error("%s", x.node_with_adjacents_to_string())
+                    logger.error("%s",
+                                 update[i].node_with_adjacents_to_string())
+                    logger.error("%s",
+                                 update[i].forward[i].node_with_adjacents_to_string())
                     return False
 
             logger.debug(self.list_to_string())
-             return True
+            return True
 
     cpdef int search(self, unsigned int key):
         logger.debug("Searching node with key %s", key)
         if key < self.MIN_KEY_VALUE  or key > self.MAX_KEY_VALUE:
-            logger.error("Illegal key value passed to insert")
+            logger.error("Illegal key value passed to insert, k= %d", key)
             raise ValueError("Illegal key value")
 
         cdef _Node x = self.HEADER
