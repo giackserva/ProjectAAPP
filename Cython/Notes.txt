@@ -3,3 +3,9 @@
 
 * Avoid using c strings
   http://cython.readthedocs.io/en/latest/src/tutorial/strings.html
+
+* Better to use C random generator
+  http://hplgit.github.io/teamods/MC_cython/main_MC_cython.html
+
+* cdef: callable only from c code
+  cpdef: callable both from c and python code (e.g. python interpreter)
