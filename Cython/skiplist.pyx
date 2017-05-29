@@ -169,7 +169,7 @@ cdef class SkipList:
         return nodes
 
     cpdef bint insert(self, unsigned int key, int value):
-        logger.debug("Trying to insert new node, k %s, v %s", key, value)
+        logger.debug("Inserting new node, k %s, v %s", key, value)
         if key < self.MIN_KEY_VALUE  or key > self.MAX_KEY_VALUE:
             logger.error("Illegal key value passed to insert, key = %s", 
                         key)
@@ -206,21 +206,9 @@ cdef class SkipList:
                 logger.debug("End update list")
             i = 0
             for i in range (lvl + 1):
-                try:
                     logger.debug("Iteration %d", i)
                     x.forward[i] = update[i].forward[i]
-                    logger.debug("Node appended")
                     update[i].forward[i] = x
-                    logger.debug("Forward node updated")
-                except IndexError as err:
-                    logger.error("Error while inserting node at iteration %d", i)
-                    if logger.getEffectiveLevel() <= logging.DEBUG:
-                        logger.error("%s", x.node_with_adjacents_to_string())
-                        logger.error("%s",
-                                 update[i].node_with_adjacents_to_string())
-                        logger.error("%s",
-                                 update[i].forward[i].node_with_adjacents_to_string())
-                    return False
 
             if logger.getEffectiveLevel() <= logging.DEBUG:
                 logger.debug(self.list_to_string())
@@ -247,3 +235,28 @@ cdef class SkipList:
         else:
             logger.debug("Node not found")
 
+    cpdef bint delete(self, unsigned int key):
+            logger.debug("Deleting node with key %s", key)
+            if key < self.MIN_KEY_VALUE  or key > self.MAX_KEY_VALUE:
+                logger.error("Illegal key value passed to insert, key = %s", 
+                            key)
+                raise ValueError("Illegal key value")
+
+            cdef list update = self._update_list(key)
+            cdef _Node x     = update[0].forward[0]
+            if logger.getEffectiveLevel() <= logging.DEBUG:
+                logger.debug("Candidate: %s", x.node_to_string())
+
+            logger.debug(x.node_to_string())
+            cdef unsigned short i = 1
+
+            if x.key == key:
+                logger.debug("Key present, deleting it")
+                for i in range(0, self.level):
+                    if update[i].forward[i] != x: break
+                    update[i].forward[i] = x.forward[i]
+                while self.level > 0 and self.HEADER.forward[self.level] == self.NIL:
+                    self.level -=1
+                return True
+            else:
+                return False
