@@ -31,10 +31,10 @@ cdef search_list(skiplist, keys):
     logging.info('CPU time for Cython search: %d', t1-t0)
 
     
-cpdef start():
+cpdef start(number_of_nodes, max_level, p):
     logging.basicConfig(filename='profile.log', filemode='w', level=logging.INFO)
-    sl = skiplist.SkipList(0.5, 16)
-    n_of_nodes = 35000
+    sl = skiplist.SkipList(p, max_level)
+    n_of_nodes = number_of_nodes
     logging.debug("Trying insert with n of nodes = %d ", n_of_nodes)
     cdef np.ndarray[DTYPE_t, ndim=1, negative_indices=False, mode='c'] nodes_keys = np.random.random_integers(sl.MIN_KEY_VALUE, sl.MAX_KEY_VALUE, n_of_nodes)
     vectorized_insert(sl, n_of_nodes, nodes_keys)
@@ -44,10 +44,10 @@ cpdef start():
     search_list(sl, nodes_keys[0:n_of_nodes:int(step)])
 
 
-cpdef deep_profile():
+cpdef deep_profile(number_of_nodes, max_level, p):
     stream = io.open('profile.log', 'w')
     # cProfile.run('start()')
-    cProfile.runctx('start()', globals(), locals(), '.prof')
+    cProfile.runctx('start(number_of_nodes, max_level, p)', globals(), locals(), '.prof')
     s = pstats.Stats('.prof', stream=stream)
     s.strip_dirs().sort_stats('time').print_stats(30)
     os.system('espeak "your program has finished"')
