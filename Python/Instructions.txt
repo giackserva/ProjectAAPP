@@ -1,1 +1,0 @@
-To convert from .py to .c, use cython --embed skiplist.py

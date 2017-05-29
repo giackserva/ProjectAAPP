@@ -2,6 +2,10 @@
 *.fuse_hidden*
 *.swp
 
+# Python log files
+*.prof
+*.log
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
