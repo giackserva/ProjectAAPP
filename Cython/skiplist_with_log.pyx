@@ -22,6 +22,8 @@ ch.setFormatter(formatter)
 logger.addHandler(fh)
 logger.addHandler(ch)
 
+logger.disabled = True
+
 srand(randint(0, RAND_MAX))
 
 

@@ -3,7 +3,7 @@ import random
 import  numpy as np
 cimport numpy as np
 import time
-import skiplist
+import skiplist_no_log as skiplist
 import cProfile, pstats
 import logging
 import io
