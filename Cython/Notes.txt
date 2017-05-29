@@ -8,9 +8,17 @@ level and maxLevel are unsigned short int
   simply run python3.6 testsuite.py
 
 * profile.py(x)
-  from a python interpreter, import profile and invoke profile.start()
+  from a python interpreter, import my_profile and invoke my_profile.start()
+  or my_profile.deep_profile().
   Important: disable the logger (or set it to ERROR) to avoid logging
-  overhead when profiling
+  overhead when profiling.
+  Important2: do not rename the file to profile.py otherwise the python 
+  interpreter will get crazy
+
+* Faster string concatenation
+  From profiling the main problems seem related to methods like node_to_string
+  where there is a lot of string concatenation. I decided to use the approach
+  mentioned in Method 4 here https://waymoot.org/home/python_string/
 
 ******General on Cython
 

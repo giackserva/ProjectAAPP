@@ -34,7 +34,7 @@ cdef search_list(skiplist, keys):
 cpdef start():
     logging.basicConfig(filename='profile.log', filemode='w', level=logging.INFO)
     sl = skiplist.SkipList(0.5, 16)
-    n_of_nodes = 350
+    n_of_nodes = 35000
     logging.debug("Trying insert with n of nodes = %d ", n_of_nodes)
     cdef np.ndarray[DTYPE_t, ndim=1, negative_indices=False, mode='c'] nodes_keys = np.random.random_integers(sl.MIN_KEY_VALUE, sl.MAX_KEY_VALUE, n_of_nodes)
     vectorized_insert(sl, n_of_nodes, nodes_keys)

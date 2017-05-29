@@ -3,7 +3,8 @@ from libc.limits cimport UINT_MAX
 from libc.stdlib cimport srand, rand, RAND_MAX
 # To generate a random seed for the rand c function
 from random import randint
-
+# Used for fast string concatenation
+from io import StringIO
 import logging
 
 logger_file = 'skiplist.log'
@@ -39,16 +40,19 @@ cdef class _Node:
 
     cpdef node_to_string(self):
         logger.debug("Converting node to string")
-        s = "--- Node ---  k:" + str(self.key)+ ", v:" + str(self.value)
+        s = "--- Node ---  k: {}, v: {}".format(self.key, self.value)
         return s
 
     cpdef node_with_adjacents_to_string(self):
-        s = self.node_to_string()
+        s_list = []
+        s_list.append(self.node_to_string())
         logger.debug("Adjacent element, level 0 to (excluded): %d ", len(self.forward))
-        s += "\n\t --- Adjacents ---"
+
+        s_list.append ("\n\t --- Adjacents ---")
         for n in self.forward:
-            s += "\n\t" + n.node_to_string()
-        return s
+            s_list.append("\n\t")
+            s_list.append(n.node_to_string())
+        return ''.join(s_list)
 
 cdef class SkipList:
     cdef public unsigned short maxLevel, level
@@ -85,31 +89,37 @@ cdef class SkipList:
     # random nothing changes
     cpdef list_to_string(self):
         logger.debug("Converting list to string")
-        s = "--- Skiplist --- \n" + "Max level = " + str(self.maxLevel) \
-                + ", Level = " + str(self.level) + ", p = " + str(self.p)
+        s_list = []
+        s_list.append("--- Skiplist --- \nMaxL = {}, L = {}, p = {} "
+                      .format(self.maxLevel, self.level, self.p))
         cdef unsigned short i
         for i in range(self.maxLevel):
-            s += "\n\t" +  self.level_to_string(i)
+            s_list.append("\n\t")
+            s_list.append(self.level_to_string(i))
         logger.debug("Ending conversion")
-        return s
+        return ''.join(s_list)
 
     cpdef level_to_string(self, int l):
         if l >= self.maxLevel:
             raise ValueError("Level greater than MaxValue")
 
         logger.debug("Printing Level = %d", l)
-        s = "--- Level " + str(l) + " ---"
+        s_list = []
+        s_list.append("--- Level {} ---".format(l))
         cdef _Node y = self.HEADER
-        s += "\n\t" + y.node_to_string()
+        s_list.append("\n\t")
+        s_list.append(y.node_to_string())
         cdef int i = 1
         while y.forward[l] != self.NIL:
-            s += "\n\t" + y.forward[l].node_to_string()
+            s_list.append("\n\t")
+            s_list.append(y.forward[l].node_to_string())
             y = y.forward[l]
             i += 1
-        s += "\n\t" + y.forward[l].node_to_string()
-        s += "\n--- End of level, " + str(i + 1) + " node present, including \
-                HEADER and NIL ---"
-        return s
+        s_list.append("\n\t")
+        s_list.append(y.forward[l].node_to_string())
+        s_list.append("\n--- End of level, {} node present, including HEADER and NIL ---"
+                      .format(i+1))
+        return ''.join(s_list)
 
     cdef unsigned short _random_level(self):
         cdef unsigned short level = 0
@@ -136,8 +146,10 @@ cdef class SkipList:
             update[i] = x
 
         logger.debug("Printing update list")
-        for n in update:
-            logger.debug("%s", n.node_with_adjacents_to_string())
+
+        if logger.getEffectiveLevel() <= logging.DEBUG:
+            for n in update:
+                logger.debug("%s", n.node_with_adjacents_to_string())
         logger.debug("End update list")
 
         return update
@@ -165,7 +177,8 @@ cdef class SkipList:
 
         cdef list update = self._update_list(key)
         cdef _Node x     = update[0].forward[0]
-        logger.debug("Candidate: %s", x.node_to_string())
+        if logger.getEffectiveLevel() <= logging.DEBUG:
+            logger.debug("Candidate: %s", x.node_to_string())
 
         cdef unsigned short lvl = self._random_level()
         cdef unsigned short i
@@ -177,7 +190,8 @@ cdef class SkipList:
         else:
             logger.debug("Random level selected %d", lvl)
             x = _Node(key, value, lvl + 1)
-            logger.debug("%s", x.node_to_string())
+            if logger.getEffectiveLevel() <= logging.DEBUG:
+                logger.debug("%s", x.node_to_string())
 
             if lvl > self.level:
                 logger.debug("Level > current level")
@@ -186,8 +200,9 @@ cdef class SkipList:
                     update.append(self.HEADER)
                 self.level = lvl
                 logger.debug("Printing update list")
-                for n in update:
-                    logger.debug("%s", n.node_with_adjacents_to_string())
+                if logger.getEffectiveLevel() <= logging.DEBUG:
+                    for n in update:
+                        logger.debug("%s", n.node_with_adjacents_to_string())
                 logger.debug("End update list")
             i = 0
             for i in range (lvl + 1):
@@ -199,14 +214,16 @@ cdef class SkipList:
                     logger.debug("Forward node updated")
                 except IndexError as err:
                     logger.error("Error while inserting node at iteration %d", i)
-                    logger.error("%s", x.node_with_adjacents_to_string())
-                    logger.error("%s",
+                    if logger.getEffectiveLevel() <= logging.DEBUG:
+                        logger.error("%s", x.node_with_adjacents_to_string())
+                        logger.error("%s",
                                  update[i].node_with_adjacents_to_string())
-                    logger.error("%s",
+                        logger.error("%s",
                                  update[i].forward[i].node_with_adjacents_to_string())
                     return False
 
-            logger.debug(self.list_to_string())
+            if logger.getEffectiveLevel() <= logging.DEBUG:
+                logger.debug(self.list_to_string())
             return True
 
     cpdef int search(self, unsigned int key):
