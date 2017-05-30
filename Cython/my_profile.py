@@ -6,6 +6,10 @@ import cProfile, pstats
 import io
 #import os
 
+MAX_LEVEL      = 10
+MIN_N_OF_NODES = 50
+MAX_N_OF_NODES = 2**MAX_LEVEL
+
 def vectorized_insert(skiplist, n_of_nodes, nodes_keys):
     for k in np.nditer(nodes_keys):
         skiplist.insert(k, 0)

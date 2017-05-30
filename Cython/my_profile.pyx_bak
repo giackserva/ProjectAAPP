@@ -7,33 +7,20 @@ import cProfile, pstats
 import io
 #import os
 
-cdef int MAX_LEVEL      = 10
-cdef int MIN_N_OF_NODES = 50
-cdef int MAX_N_OF_NODES = 2**MAX_LEVEL
 DTYPE = np.int
 ctypedef np.int_t DTYPE_t
 
 cdef vectorized_insert(skiplist, n_of_nodes, nodes_keys):
-    #n_of_nodes = random.randint(MIN_N_OF_NODES, MAX_N_OF_NODES)
-    t0 = time.perf_counter()
     for k in np.nditer(nodes_keys):
         skiplist.insert(k, 0)
-    t1 = time.perf_counter()
-    return t1-t0
 
 cdef search_list(skiplist, keys):
-    t0 = time.perf_counter()
     for k in np.nditer(keys):
         skiplist.search(k)
-    t1 = time.perf_counter()
-    return t1-t0
 
 cdef delete_list(skiplist, keys):
-    t0 = time.perf_counter()
     for k in np.nditer(keys):
         skiplist.delete(k)
-    t1 = time.perf_counter()
-    return t1-t0
     
 cpdef basic_profile(number_of_nodes, max_level, p):
     path = './basic_profile/ml_{:0>2}_n_{:0>8}_p_{}.log'.format(max_level, number_of_nodes, p)
