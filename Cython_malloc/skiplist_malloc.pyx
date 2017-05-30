@@ -22,7 +22,8 @@ cdef node* newNode(key, value, level):
 cdef class SkipList:
     cdef public unsigned short maxLevel, level
     cdef readonly float p
-    cdef node *HEADER, *NIL
+    cdef node *HEADER
+    cdef node *NIL
     cpdef readonly unsigned int MIN_KEY_VALUE
     cpdef readonly unsigned MAX_KEY_VALUE
 
