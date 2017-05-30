@@ -3,7 +3,6 @@ import  numpy as np
 import time
 import skiplist_no_log as skiplist
 import cProfile, pstats
-import logging
 import io
 #import os
 
@@ -63,9 +62,8 @@ def deep_profile(number_of_nodes, max_level, p):
     #os.system('espeak "your program has finished"')
 
 # n = 0 for basic_profile, 1 for deep_profile
-def multiple_profiling(n):
+def multiple_profiling(n, max_max_level):
     p = 0.5
-    max_max_level = 8
     min_n_of_nodes = max_max_level
     max_n_of_nodes = 2**max_max_level
 
@@ -73,13 +71,15 @@ def multiple_profiling(n):
         print('Basic profile starting')
         for i in range(max_max_level, 0, -1):
             #n of nodes
-            for j in range(max_n_of_nodes, min_n_of_nodes - 1, -1):
+            #The idea is to have a sampling on 10% of the range
+            for j in range(max_n_of_nodes, min_n_of_nodes - 1, int(max_n_of_nodes / -10)):
                 basic_profile(j, i, p)
     elif n == 1:
         print('Deep profile starting')
         for i in range(max_max_level, 0, -1):
             #n of nodes
-            for j in range(max_n_of_nodes, min_n_of_nodes - 1, -1):
+            #The idea is to have a sampling on 10% of the range
+            for j in range(max_n_of_nodes, min_n_of_nodes - 1, int(max_n_of_nodes / -10)):
                 deep_profile(j, i, p)
     else:
         print('error, illegal value {}'.format(n))
