@@ -7,7 +7,7 @@ import skiplist_no_log as skiplist
 import cProfile, pstats
 import logging
 import io
-import os
+#import os
 
 cdef int MAX_LEVEL      = 10
 cdef int MIN_N_OF_NODES = 50
@@ -58,4 +58,4 @@ cpdef deep_profile(number_of_nodes, max_level, p):
     cProfile.runctx('start(number_of_nodes, max_level, p)', globals(), locals(), '.prof')
     s = pstats.Stats('.prof', stream=stream)
     s.strip_dirs().sort_stats('time').print_stats(30)
-    os.system('espeak "your program has finished"')
+    #os.system('espeak "your program has finished"')
