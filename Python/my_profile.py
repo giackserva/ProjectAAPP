@@ -34,24 +34,24 @@ def delete_list(skiplist, keys):
     
 def basic_profile(number_of_nodes, max_level, p):
     path = './basic_profile/ml_{:0>2}_n_{:0>8}_p_{}.log'.format(max_level, number_of_nodes, p)
-    logging.basicConfig(filename=path, filemode='w', level=logging.INFO)
+    f = open(path, 'w')
     sl = skiplist.SkipList(p, max_level)
-    n_of_nodes = number_of_nodes
-    logging.debug("Trying insert with n of nodes = %d ", n_of_nodes)
     nodes_keys = np.random.randint(sl.MIN_KEY_VALUE,
                                    sl.MAX_KEY_VALUE, 
-                                   size=n_of_nodes)
-    t = vectorized_insert(sl, n_of_nodes, nodes_keys)
-    logging.info('CPU time for Python insert: %.3fs', t)
+                                   size=number_of_nodes)
+    t = vectorized_insert(sl, number_of_nodes, nodes_keys)
+    f.write('CPU time for Python insert {:4.10f}\n'.format(t))
     
     # we want to search for 10% of all keys in the ndarray of keys
     #step = n_of_nodes / 10
     #search_list(sl, nodes_keys[0:n_of_nodes:int(step)])
     t = search_list(sl, np.random.permutation(nodes_keys))
-    logging.info('CPU time for Python search: %.3fs', t)
+    f.write('CPU time for Python search {:4.10f}\n'.format(t))
 
     t = delete_list(sl, np.random.permutation(nodes_keys))
-    logging.info('CPU time for Python delete: %.3fs', t)
+    f.write('CPU time for Python delete {:4.10f}\n'.format(t))
+
+    f.close()
 
 def deep_profile(number_of_nodes, max_level, p):
     path = 'deep_profile/ml_{:0>2}_n_{:0>8}_p_{}.log'.format(max_level, number_of_nodes, p)
@@ -65,7 +65,7 @@ def deep_profile(number_of_nodes, max_level, p):
 # n = 0 for basic_profile, 1 for deep_profile
 def multiple_profiling(n):
     p = 0.5
-    max_max_level = 16
+    max_max_level = 8
     min_n_of_nodes = max_max_level
     max_n_of_nodes = 2**max_max_level
 
