@@ -3,8 +3,9 @@
 *.swp
 
 # Python log files
-*.prof
+*.prof*
 *.log
+*.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
