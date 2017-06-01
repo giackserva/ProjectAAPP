@@ -28,7 +28,7 @@ srand(randint(0, RAND_MAX))
 
 
 cdef class _Node:
-    cdef public int value
+    cdef public unsigned int value
     cdef public unsigned int key
     cdef public list forward
 
@@ -232,8 +232,9 @@ cdef class SkipList:
         if x.key == key:
 #            logger.debug("Node found, value = %s", x.value)
             return x.value
-#        else:
+        else:
 #            logger.debug("Node not found")
+            return -1
 
     cpdef bint delete(self, unsigned int key):
 #            logger.debug("Deleting node with key %s", key)

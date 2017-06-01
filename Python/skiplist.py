@@ -208,8 +208,9 @@ class SkipList:
         if x.key == key:
 #            logger.debug("Node found, value = %s", x.value)
             return x.value
-#        else:
+        else:
 #            logger.debug("Node not found")
+            return -1
 
     def delete(self, key):
 #            logger.debug("Deleting node with key %s", key)

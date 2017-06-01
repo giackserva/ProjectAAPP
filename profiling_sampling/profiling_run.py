@@ -1,6 +1,7 @@
 import my_profile as mp
 import numpy as np
 import sys
+import math
 sys.path.insert(0, '../Python')
 sys.path.insert(0, '../Cython')
 sys.path.insert(0, '../Cython_malloc')
@@ -208,6 +209,42 @@ def multiple_profiling(t, max_max_level, min_min_level, p, n):
                 sampling(j, i, p, n)
     else:
         print('error, illegal value {}'.format(n))
+
+def performance_test(n, maxZeros):
+		for zeros in  range(1, maxZeros + 1):
+			sl = _skiplist_implementation_type_build(n, 0.5, math.floor(math.log(10**zeros, 2)))
+			nodes_keys = np.random.randint(sl.MIN_KEY_VALUE,
+			                sl.MAX_KEY_VALUE,
+			                size=10**zeros)
+
+			for el in np.nditer(nodes_keys):
+				sl.insert(el, 0)
+
+			insert_time = 0
+			search_time = 0
+			delete_time = 0
+
+			for i in range(100):
+				ins = nodes_keys[0]
+				while ins in nodes_keys:
+					ins = np.random.randint(sl.MIN_KEY_VALUE, sl.MAX_KEY_VALUE)
+				t0 = time.perf_counter()
+				sl.insert(ins, 0)
+				insert_time += time.perf_counter() - t0
+				t0 = time.perf_counter()
+				sl.delete(ins)
+				delete_time += time.perf_counter() - t0
+				ins = np.random.choice(nodes_keys)
+				t0 = time.perf_counter()
+				sl.search(ins)
+				search_time += time.perf_counter() - t0
+
+			#function,order of magnitude, avg time
+			print('insert,{},{:.6f}'.format(zeros, insert_time / 100 * 1000))
+			print('delete,{},{:.6f}'.format(zeros, delete_time / 100 * 1000))
+			print('search,{},{:.6f}'.format(zeros, search_time / 100 * 1000))
+
+
 """
 Run the multiple_profiling function for 3 varying parameters:
     - The different type of skiplist implementation
