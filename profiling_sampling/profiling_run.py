@@ -387,55 +387,57 @@ Argument keys:
       [> 0]
 
 """
-def variating_sampling2(n, min_max_level, max_max_level, max_number_of_nodes,
-        step_bw_number_of_nodes, min_p, max_p, step_bw_ps, number_of_samples, 
-        append_to_path = '_vs2'):
+def variating_sampling2(n, max_number_of_nodes, min_p, max_p, step_bw_ps,
+        number_of_samples, append_to_path = '_vs2'):
 
-    filename_samples = 'data/samples2/n_{}/p_{:1.2f}/ml_{}_ns_{}_'
+    filename_samples = 'data/samples2/n_{}/p_{:1.2f}/'
     last_part_of_files = ['insert{}.csv'.format(append_to_path),
             'search{}.csv'.format(append_to_path), 
             'delete{}.csv'.format(append_to_path)] 
-# TEMP! 0.1, 0.9, 4
-    # ps = np.linspace(0.7, 0.7, num=1, endpoint=False)
+            
     " Variating probabilities"
     for i in range(min_p, max_p + 1, step_bw_ps):
         p = i / 10
-        " Variating max level"
-        for ml in range(min_max_level, max_max_level + 1):
-            tmp = filename_samples.format(n, p, ml, number_of_samples)
-            os.makedirs(os.path.dirname(tmp), exist_ok=True)
-            filename_for_insert_samples = tmp + last_part_of_files[0]
-            filename_for_search_samples = tmp + last_part_of_files[1]
-            filename_for_delete_samples = tmp + last_part_of_files[2]
-            
-            """ Create a skiplist with just 1 node. The idea is not to create a
-            new skiplist from scratch for each iteration (loop below, nd), but 
-            to simply update the following basic skiplist"""
-            sl = create_and_populate_a_skiplist(n, ml, p, 1)
-            with io.open(filename_for_insert_samples, 'a') as f1, io.open(filename_for_search_samples, 'a') as f2, io.open(filename_for_delete_samples, 'a') as f3: 
 
-                "Variating number of nodes present in the list"
-                for nd in range(1 + step_bw_number_of_nodes, 
-                        max_number_of_nodes + 1, 
-                        step_bw_number_of_nodes):
-                    print("Sampling with ml={}, p={:.2f}, n={}".format(ml, p, nd))
-                    sl = add_nodes_to_skiplist(sl, step_bw_number_of_nodes)
-                    result_list = sampling2(sl, number_of_samples)
-                    f1.write('{}, {:4.10f}\n'.format(nd, result_list[0]))
-                    f2.write('{}, {:4.10f}\n'.format(nd, result_list[1]))
-                    f3.write('{}, {:4.10f}\n'.format(nd, result_list[2]))
+        tmp = filename_samples.format(n, p)
+        os.makedirs(os.path.dirname(tmp), exist_ok=True)
+
+        filename_for_insert_samples = tmp + last_part_of_files[0]
+        filename_for_search_samples = tmp + last_part_of_files[1]
+        filename_for_delete_samples = tmp + last_part_of_files[2]
+        
+        with io.open(filename_for_insert_samples, 'a') as f1, \
+            io.open(filename_for_search_samples, 'a') as f2, \
+            io.open(filename_for_delete_samples, 'a') as f3: 
+        
+            k = 1
+            j = 1
+            while k * 10 ** j <= max_number_of_nodes:
+                nd = k * 10 ** j
+                ml = math.floor(math.log(nd, 1/p))
+                sl = create_and_populate_a_skiplist(n, ml, p, nd)
+
+                print("Sampling with ml={}, p={:.2f}, n={}".format(ml, p, nd))
+                
+                result_list = sampling2(sl, number_of_samples)
+                f1.write('{}, {:4.10f}\n'.format(nd, result_list[0]))
+                f2.write('{}, {:4.10f}\n'.format(nd, result_list[1]))
+                f3.write('{}, {:4.10f}\n'.format(nd, result_list[2]))    
+
+                k += 1
+                if k == 10:
+                    k = 1
+                    j += 1
 
 """
 Same arguments as variating_sampling2
 """
-def vs2_test(n, min_max_level, max_max_level, max_number_of_nodes,
-        step_bw_number_of_nodes, min_p, max_p, step_bw_ps, number_of_samples):
-    filename = 'data/tst/n_{}/min_ml_{}_max_ml_{}_minp_{}_maxp_{}.cprof'.format(
-            n, min_max_level, max_max_level, min_p, max_p)
+def vs2_test(n, max_number_of_nodes, min_p, max_p, step_bw_ps, number_of_samples):
+    filename = 'data/tst/n_{}/minp_{}_maxp_{}.cprof'.format(
+            n, min_p, max_p)
     os.makedirs(os.path.dirname(filename), exist_ok=True)
-    function_call = 'variating_sampling2({}, {}, {}, {}, {}, {}, {}, {},{})'.format(
-            n, min_max_level, max_max_level, max_number_of_nodes,
-            step_bw_number_of_nodes, min_p, max_p, step_bw_ps, number_of_samples)
+    function_call = 'variating_sampling2({}, {}, {}, {}, {}, {})'.format(
+            n, max_number_of_nodes, min_p, max_p, step_bw_ps, number_of_samples)
     cProfile.runctx(function_call, globals(), locals(), '.prof')
     with io.open(filename, 'w') as stream:
         s = pstats.Stats('.prof', stream=stream)

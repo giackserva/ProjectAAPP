@@ -3,17 +3,15 @@ from libc.stdlib cimport srand, rand, RAND_MAX
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 # To generate a random seed for the rand c function
 from random import randint
-# Used for fast string concatenation
-from io import StringIO
 
 srand(randint(0, RAND_MAX))
 
 cdef struct node:
     unsigned int key
     unsigned int value
-    node *forward [32]
+    node *forward [200]
 
-cdef node* newNode(key, value, level):
+cdef node* newNode(key, value):
     n = <node *>PyMem_Malloc(sizeof(node))
     n.key = key
     n.value = value
@@ -36,8 +34,8 @@ cdef class SkipList:
         self.level    = 0
         self.MIN_KEY_VALUE = 1
         self.MAX_KEY_VALUE = UINT_MAX - 2
-        self.HEADER   = newNode(self.MIN_KEY_VALUE, 0, 0)
-        self.NIL      = newNode(self.MAX_KEY_VALUE, 100, 0)
+        self.HEADER   = newNode(self.MIN_KEY_VALUE, 0)
+        self.NIL      = newNode(self.MAX_KEY_VALUE, 0)
 
         cdef unsigned short i
         for i in range(self.maxLevel):
@@ -68,7 +66,7 @@ cdef class SkipList:
         if key < self.MIN_KEY_VALUE  or key > self.MAX_KEY_VALUE:
             raise ValueError("Illegal key value")
 
-        cdef node *update[32]
+        cdef node *update[200]
         cdef unsigned short i
         
         for i in range(self.level):
@@ -87,7 +85,7 @@ cdef class SkipList:
             x.value = value
             return False
         else:
-            x = newNode(key, value, lvl + 1)
+            x = newNode(key, value)
             if lvl > self.level:
                 i = 0
                 for i in range(self.level + 1, lvl + 1):
@@ -119,7 +117,7 @@ cdef class SkipList:
         if key < self.MIN_KEY_VALUE  or key > self.MAX_KEY_VALUE:
             raise ValueError("Illegal key value")
 
-        cdef node *update[32]
+        cdef node *update[200]
         cdef unsigned short i
         
         for i in range(self.level):
