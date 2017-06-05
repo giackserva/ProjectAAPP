@@ -371,8 +371,9 @@ samples the insertion/searching/deletion time for each generated skiplist.
 
 Argument keys:
     - The kind of skiplist (0 python, 1 cython, 2 cython malloc)
-    - The max_max_level and min_max_level associated  
+    - The min_max_level and max_max_level associated  
       [> 0 and min_max_level <= max_max_level]
+    - The step between two consecutive levels
     - The max_number_of_nodes for the generated skiplist [> 0]
     - The step between the number of nodes. F.e. if you select a
       max_number_of_nodes = 1000 and a step = 100, it will generate skiplist
@@ -387,7 +388,8 @@ Argument keys:
       [> 0]
 
 """
-def variating_sampling2(n, min_max_level, max_max_level, max_number_of_nodes,
+def variating_sampling2(n, min_max_level, max_max_level,# - lines/points
+        step_bw_levels, max_number_of_nodes,
         step_bw_number_of_nodes, min_p, max_p, step_bw_ps, number_of_samples, 
         append_to_path = '_vs2'):
 
@@ -401,7 +403,7 @@ def variating_sampling2(n, min_max_level, max_max_level, max_number_of_nodes,
     for i in range(min_p, max_p + 1, step_bw_ps):
         p = i / 10
         " Variating max level"
-        for ml in range(min_max_level, max_max_level + 1):
+        for ml in range(min_max_level, max_max_level + 1, step_bw_levels):
             tmp = filename_samples.format(n, p, ml, number_of_samples)
             os.makedirs(os.path.dirname(tmp), exist_ok=True)
             filename_for_insert_samples = tmp + last_part_of_files[0]
@@ -428,13 +430,13 @@ def variating_sampling2(n, min_max_level, max_max_level, max_number_of_nodes,
 """
 Same arguments as variating_sampling2
 """
-def vs2_test(n, min_max_level, max_max_level, max_number_of_nodes,
+def vs2_test(n, min_max_level, max_max_level, step_bw_levels, max_number_of_nodes,
         step_bw_number_of_nodes, min_p, max_p, step_bw_ps, number_of_samples):
     filename = 'data/tst/n_{}/min_ml_{}_max_ml_{}_minp_{}_maxp_{}.cprof'.format(
             n, min_max_level, max_max_level, min_p, max_p)
     os.makedirs(os.path.dirname(filename), exist_ok=True)
-    function_call = 'variating_sampling2({}, {}, {}, {}, {}, {}, {}, {},{})'.format(
-            n, min_max_level, max_max_level, max_number_of_nodes,
+    function_call = 'variating_sampling2({}, {}, {}, {}, {}, {}, {},{}, {}, {})'.format(
+            n, min_max_level, max_max_level, step_bw_levels, max_number_of_nodes,
             step_bw_number_of_nodes, min_p, max_p, step_bw_ps, number_of_samples)
     cProfile.runctx(function_call, globals(), locals(), '.prof')
     with io.open(filename, 'w') as stream:
