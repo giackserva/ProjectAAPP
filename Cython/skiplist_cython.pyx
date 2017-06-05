@@ -186,7 +186,7 @@ cdef class SkipList:
         if x.key == key:
 #            logger.debug("Key already present, updating value")
             x.value = value
-            return True
+            return False
         else:
 #            logger.debug("Random level selected %d", lvl)
             x = _Node(key, value, lvl + 1)

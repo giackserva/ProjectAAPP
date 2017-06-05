@@ -85,7 +85,7 @@ cdef class SkipList:
 
         if x.key == key:
             x.value = value
-            return True
+            return False
         else:
             x = newNode(key, value, lvl + 1)
             if lvl > self.level:

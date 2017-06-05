@@ -1,11 +1,15 @@
+# Project files
+*.prof*
+*.csv
+*/data/*
+
 # Linux files
 *.fuse_hidden*
 *.swp
+*.swo
 
 # Python log files
-*.prof*
 *.log
-*.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
