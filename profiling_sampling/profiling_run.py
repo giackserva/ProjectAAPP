@@ -2,12 +2,12 @@ import sys
 sys.path.insert(0, '../Python')
 sys.path.insert(0, '../Cython')
 sys.path.insert(0, '../Cython_malloc')
-import my_profile as mp
-import numpy as np
-import math
 import skiplist_cython as slc
 import skiplist as slp
 import skiplist_malloc as slm
+import my_profile as mp
+import numpy as np
+import math
 import time
 import cProfile, pstats
 import io
@@ -61,13 +61,13 @@ def basic_profile(number_of_nodes, max_level, p, n, append_to_path = ''):
     nodes_keys = _generate_random_node_keys(number_of_nodes, sl.MIN_KEY_VALUE,
             sl.MAX_KEY_VALUE)
 
-    filename = 'basic_profile/{}/{:1.2f}/ml_{:0>2}_n_{:0>8}{}.log'.format(n, p,
+    filename = 'data/basic_profile/{}/{:1.2f}/ml_{:0>2}_n_{:0>8}{}.log'.format(n, p,
             max_level, number_of_nodes, append_to_path)
     os.makedirs(os.path.dirname(filename), exist_ok=True)
-    f = open(filename, 'w')
+    f = io.open(filename, 'w')
 
     t0 = time.perf_counter()
-    mp.vectorized_insert(sl, number_of_nodes, nodes_keys)
+    mp.vectorized_insert(sl, nodes_keys)
     t1 = time.perf_counter()
     f.write('CPU time for Python insert {:4.10f}\n'.format(t1-t0))
 
@@ -100,12 +100,12 @@ def deep_profile(number_of_nodes, max_level, p, n, append_to_path = ''):
     nodes_keys = _generate_random_node_keys(number_of_nodes,
             sl.MIN_KEY_VALUE, sl.MAX_KEY_VALUE)
 
-    filename = 'deep_profile/{}/{:1.2f}/ml_{:0>2}_n_{:0>8}{}.log'.format(n, p,
+    filename = 'data/deep_profile/{}/{:1.2f}/ml_{:0>2}_n_{:0>8}{}.log'.format(n, p,
             max_level, number_of_nodes, append_to_path)
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     stream = io.open(filename, 'w')
 
-    cProfile.runctx('mp.vectorized_insert(sl, number_of_nodes, nodes_keys)',
+    cProfile.runctx('mp.vectorized_insert(sl, nodes_keys)',
             globals(), locals(), '.prof_v_ins')
     s = pstats.Stats('.prof_v_ins', stream=stream)
     s.strip_dirs().sort_stats('time').print_stats(30)
@@ -137,11 +137,11 @@ n -- The type of the skiplist
 append_to_path -- A string to append to the path
 """
 def sampling(number_of_nodes, max_level, p, n, append_to_path = ''):
-    filename_for_insert_samples = 'samples/{}/{:1.2f}/insert{}.csv'.format(n,
+    filename_for_insert_samples = 'data/samples/{}/{:1.2f}/insert{}.csv'.format(n,
             p, append_to_path)
-    filename_for_search_samples = 'samples/{}/{:1.2f}/search{}.csv'.format(n,
+    filename_for_search_samples = 'data/samples/{}/{:1.2f}/search{}.csv'.format(n,
             p, append_to_path)
-    filename_for_delete_samples = 'samples/{}/{:1.2f}/delete{}.csv'.format(n,
+    filename_for_delete_samples = 'data/samples/{}/{:1.2f}/delete{}.csv'.format(n,
             p, append_to_path)
     os.makedirs(os.path.dirname(filename_for_insert_samples), exist_ok=True)
     os.makedirs(os.path.dirname(filename_for_search_samples), exist_ok=True)
@@ -151,13 +151,13 @@ def sampling(number_of_nodes, max_level, p, n, append_to_path = ''):
     nodes_keys = _generate_random_node_keys(number_of_nodes, sl.MIN_KEY_VALUE,
             sl.MAX_KEY_VALUE)
 
-    f1 = open(filename_for_insert_samples, 'a')
+    f1 = io.open(filename_for_insert_samples, 'a')
     t0 = time.perf_counter()
-    mp.vectorized_insert(sl, number_of_nodes, nodes_keys)
+    mp.vectorized_insert(sl, nodes_keys)
     t1 = time.perf_counter()
     f1.write('{}, {}, {:4.10f}\n'.format(number_of_nodes, max_level, t1-t0))
     f1.close
-    f2 = open(filename_for_search_samples, 'a')
+    f2 = io.open(filename_for_search_samples, 'a')
     perm = np.random.permutation(nodes_keys)
     t0 = time.perf_counter()
     mp.search_list(sl, perm)
@@ -165,7 +165,7 @@ def sampling(number_of_nodes, max_level, p, n, append_to_path = ''):
     f2.write('{}, {}, {:4.10f}\n'.format(number_of_nodes, max_level, t1-t0))
     f2.close()
 
-    f3 = open(filename_for_delete_samples, 'a')
+    f3 = io.open(filename_for_delete_samples, 'a')
     perm = np.random.permutation(nodes_keys)
     t0 = time.perf_counter()
     mp.delete_list(sl, perm)
@@ -378,22 +378,28 @@ Argument keys:
       max_number_of_nodes = 1000 and a step = 100, it will generate skiplist
       with a number of nodes = [1, 101, 201, 301, ..., 901]
       [> 0 and < max_number_of_nodes]
+    - The minimum probability level
+    - The maximum probability level
+    - The step between probabilities. All these probabilities are integer.
+        E.g. min_p=1, max_p=9, step=1 means [0.1, 0.2, 0.3, ..., 0.9]
     - The number_of_samples, i.e. the number of nodes for which to take
       the average performance basing on operations on the generated list 
       [> 0]
 
 """
 def variating_sampling2(n, min_max_level, max_max_level, max_number_of_nodes,
-        step_bw_number_of_nodes, number_of_samples, append_to_path = '_vs2'):
+        step_bw_number_of_nodes, min_p, max_p, step_bw_ps, number_of_samples, 
+        append_to_path = '_vs2'):
 
-    filename_samples = 'samples2/n_{}/p_{:1.2f}/ml_{}_ns_{}_'
+    filename_samples = 'data/samples2/n_{}/p_{:1.2f}/ml_{}_ns_{}_'
     last_part_of_files = ['insert{}.csv'.format(append_to_path),
             'search{}.csv'.format(append_to_path), 
             'delete{}.csv'.format(append_to_path)] 
-    ps = np.linspace(0.1, 0.9, num=4, endpoint=False)
+# TEMP! 0.1, 0.9, 4
+    # ps = np.linspace(0.7, 0.7, num=1, endpoint=False)
     " Variating probabilities"
-    for i in range(len(ps)):
-        p = ps[i]
+    for i in range(min_p, max_p + 1, step_bw_ps):
+        p = i / 10
         " Variating max level"
         for ml in range(min_max_level, max_max_level + 1):
             tmp = filename_samples.format(n, p, ml, number_of_samples)
@@ -406,7 +412,7 @@ def variating_sampling2(n, min_max_level, max_max_level, max_number_of_nodes,
             new skiplist from scratch for each iteration (loop below, nd), but 
             to simply update the following basic skiplist"""
             sl = create_and_populate_a_skiplist(n, ml, p, 1)
-            with open(filename_for_insert_samples, 'a') as f1, open(filename_for_search_samples, 'a') as f2, open(filename_for_delete_samples, 'a') as f3: 
+            with io.open(filename_for_insert_samples, 'a') as f1, io.open(filename_for_search_samples, 'a') as f2, io.open(filename_for_delete_samples, 'a') as f3: 
 
                 "Variating number of nodes present in the list"
                 for nd in range(1 + step_bw_number_of_nodes, 
@@ -419,10 +425,18 @@ def variating_sampling2(n, min_max_level, max_max_level, max_number_of_nodes,
                     f2.write('{}, {:4.10f}\n'.format(nd, result_list[1]))
                     f3.write('{}, {:4.10f}\n'.format(nd, result_list[2]))
 
-def vs2_test():
-    filename = 'tst/a.cprof'
+"""
+Same arguments as variating_sampling2
+"""
+def vs2_test(n, min_max_level, max_max_level, max_number_of_nodes,
+        step_bw_number_of_nodes, min_p, max_p, step_bw_ps, number_of_samples):
+    filename = 'data/tst/n_{}/min_ml_{}_max_ml_{}_minp_{}_maxp_{}.cprof'.format(
+            n, min_max_level, max_max_level, min_p, max_p)
     os.makedirs(os.path.dirname(filename), exist_ok=True)
-    stream = io.open(filename, 'w')
-    cProfile.runctx('variating_sampling2(1, 15, 15, 2**16, 257, 10000)', globals(), locals(), '.prof')
-    s = pstats.Stats('.prof', stream=stream)
-    s.strip_dirs().sort_stats('time').print_stats(30)
+    function_call = 'variating_sampling2({}, {}, {}, {}, {}, {}, {}, {},{})'.format(
+            n, min_max_level, max_max_level, max_number_of_nodes,
+            step_bw_number_of_nodes, min_p, max_p, step_bw_ps, number_of_samples)
+    cProfile.runctx(function_call, globals(), locals(), '.prof')
+    with io.open(filename, 'w') as stream:
+        s = pstats.Stats('.prof', stream=stream)
+        s.strip_dirs().sort_stats('time').print_stats(30)
