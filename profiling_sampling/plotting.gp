@@ -31,7 +31,7 @@ f7 = sprintf("data/%s/n_%s/p_0.70/%s_vs2.csv", ARG1, ARG2, ARG3)
 f8 = sprintf("data/%s/n_%s/p_0.80/%s_vs2.csv", ARG1, ARG2, ARG3)
 f9 = sprintf("data/%s/n_%s/p_0.90/%s_vs2.csv", ARG1, ARG2, ARG3)
 
-plot f1 with lines, f2 with lines, f3 with lines, f4 with lines, f5 with lines, f6 with lines, f7 with lines, f8 with lines, f8 with lines, f9 with lines
+plot f1 with points, f2 with points, f3 with points#, f4 with points, f5 with points, f6 with points, #f7 with points, f8 with points, f8 with points, f9 with points
 
 #plot 'data/', ARG3, '/n_', ARG1, '/p_0.10/ml_', ARG2', '_ns_10000_', ARG0, '_vs2.csv'
 #using 1:2 with 'ARG4 title "p=0.10", 'data/'ARG3/n_'ARG1/p_0.30/ml_'ARG2_ns_10000_'ARG0_vs2.csv' using 1:2 with 'ARG4 title "p=0.30", 'data/'ARG3/n_'ARG1/p_0.50/ml_'ARG2_ns_10000_'ARG0_vs2.csv' using 1:2 with 'ARG4 title "p=0.50", 'data/'ARG3/n_'ARG1/p_0.70/ml_'ARG2_ns_10000_'ARG0_vs2.csv' using 1:2 with 'ARG4 title "p=0.70", 'data/'ARG3/n_'ARG1/p_0.90/ml_'ARG2_ns_10000_'ARG0_vs2.csv' using 1:2 with 'ARG4 title "p=0.90"

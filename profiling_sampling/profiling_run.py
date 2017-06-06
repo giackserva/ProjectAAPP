@@ -411,10 +411,10 @@ def variating_sampling2(n, max_number_of_nodes, min_p, max_p, step_bw_ps,
             io.open(filename_for_delete_samples, 'a') as f3: 
         
             k = 1
-            j = 1
+            j = 0
             while k * 10 ** j <= max_number_of_nodes:
                 nd = k * 10 ** j
-                ml = math.floor(math.log(nd, 1/p))
+                ml = math.floor(math.log(nd, 1/p)) + 1
                 sl = create_and_populate_a_skiplist(n, ml, p, nd)
 
                 print("Sampling with ml={}, p={:.2f}, n={}".format(ml, p, nd))
