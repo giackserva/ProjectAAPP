@@ -18,7 +18,7 @@ else {
 }
 set xlabel "N"
 set ylabel "t[s]"
-title = sprintf("Average %s time with skiplist of max level = %s with various number of nodes and p", ARG0, ARG2)
+title = sprintf("Average %s time with skiplist of max level = %s with various number of nodes and p", ARG1, ARG3)
 set title title
 set grid
 

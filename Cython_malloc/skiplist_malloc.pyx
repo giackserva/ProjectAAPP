@@ -11,7 +11,7 @@ srand(randint(0, RAND_MAX))
 cdef struct node:
     unsigned int key
     unsigned int value
-    node *forward [32]
+    node *forward [256]
 
 cdef node* newNode(key, value, level):
     n = <node *>PyMem_Malloc(sizeof(node))
@@ -68,7 +68,7 @@ cdef class SkipList:
         if key < self.MIN_KEY_VALUE  or key > self.MAX_KEY_VALUE:
             raise ValueError("Illegal key value")
 
-        cdef node *update[32]
+        cdef node *update[256]
         cdef unsigned short i
         
         for i in range(self.level):
@@ -119,7 +119,7 @@ cdef class SkipList:
         if key < self.MIN_KEY_VALUE  or key > self.MAX_KEY_VALUE:
             raise ValueError("Illegal key value")
 
-        cdef node *update[32]
+        cdef node *update[256]
         cdef unsigned short i
         
         for i in range(self.level):
@@ -138,7 +138,17 @@ cdef class SkipList:
                 update[i].forward[i] = x.forward[i]
             while self.level > 0 and self.HEADER.forward[self.level] == self.NIL:
                 self.level -=1
+            PyMem_Free(x.forward)
             PyMem_Free(x)
             return True
         else:
             return False
+
+    def sl_free(self):
+        cdef node *next = self.HEADER
+        cdef node *tmp = next
+        while next != NULL:
+            tmp = next
+            next = next.forward[0]
+            PyMem_Free(tmp)
+
