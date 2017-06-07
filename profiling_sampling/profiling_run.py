@@ -402,30 +402,34 @@ def variating_sampling2(n, min_max_level, max_max_level,# - lines/points
     " Variating probabilities"
     for i in range(min_p, max_p + 1, step_bw_ps):
         p = i / 10
-        " Variating max level"
-        for ml in range(min_max_level, max_max_level + 1, step_bw_levels):
-            tmp = filename_samples.format(n, p, ml, number_of_samples)
-            os.makedirs(os.path.dirname(tmp), exist_ok=True)
-            filename_for_insert_samples = tmp + last_part_of_files[0]
-            filename_for_search_samples = tmp + last_part_of_files[1]
-            filename_for_delete_samples = tmp + last_part_of_files[2]
-            
-            """ Create a skiplist with just 1 node. The idea is not to create a
-            new skiplist from scratch for each iteration (loop below, nd), but 
-            to simply update the following basic skiplist"""
-            sl = create_and_populate_a_skiplist(n, ml, p, 1)
-            with io.open(filename_for_insert_samples, 'a') as f1, io.open(filename_for_search_samples, 'a') as f2, io.open(filename_for_delete_samples, 'a') as f3: 
+        # " Variating max level"
+        # for ml in range(min_max_level, max_max_level + 1, step_bw_levels):
+        
+        """ Create a skiplist with just 1 node. The idea is not to create a
+        new skiplist from scratch for each iteration (loop below, nd), but 
+        to simply update the following basic skiplist"""
+        ml = math.ceil(math.log(max_number_of_nodes, 1/p))
+        tmp = filename_samples.format(n, p, ml, number_of_samples)
+        os.makedirs(os.path.dirname(tmp), exist_ok=True)
+        filename_for_insert_samples = tmp + last_part_of_files[0]
+        filename_for_search_samples = tmp + last_part_of_files[1]
+        filename_for_delete_samples = tmp + last_part_of_files[2]
+        sl = create_and_populate_a_skiplist(n, ml, p, 1)
+        with io.open(filename_for_insert_samples, 'a') as f1, io.open(filename_for_search_samples, 'a') as f2, io.open(filename_for_delete_samples, 'a') as f3: 
 
-                "Variating number of nodes present in the list"
-                for nd in range(1 + step_bw_number_of_nodes, 
-                        max_number_of_nodes + 1, 
-                        step_bw_number_of_nodes):
-                    print("Sampling with ml={}, p={:.2f}, n={}".format(ml, p, nd))
-                    sl = add_nodes_to_skiplist(sl, step_bw_number_of_nodes)
-                    result_list = sampling2(sl, number_of_samples)
-                    f1.write('{}, {:4.10f}\n'.format(nd, result_list[0]))
-                    f2.write('{}, {:4.10f}\n'.format(nd, result_list[1]))
-                    f3.write('{}, {:4.10f}\n'.format(nd, result_list[2]))
+            "Variating number of nodes present in the list"
+            for nd in range(1 + step_bw_number_of_nodes, 
+                    max_number_of_nodes + 1, 
+                    step_bw_number_of_nodes):
+                print("Sampling with ml={}, p={:.2f}, n={}".format(ml, p, nd))
+                sl = add_nodes_to_skiplist(sl, step_bw_number_of_nodes)
+                result_list = sampling2(sl, number_of_samples)
+                f1.write('{}, {:4.10f}\n'.format(nd, result_list[0]))
+                f2.write('{}, {:4.10f}\n'.format(nd, result_list[1]))
+                f3.write('{}, {:4.10f}\n'.format(nd, result_list[2]))
+        if (n == 2):
+           sl.sl_free() 
+
 
 """
 Same arguments as variating_sampling2
